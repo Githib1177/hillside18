@@ -492,6 +492,31 @@ if(acMsg){
   }catch(e){ try{console.warn('init skipped', e);}catch(_){ } }
 })();
 </script>
+<script>
+/* iOS hotfix: spolehlivě spustí telefonní vytáčení i když jiné skripty brání defaultní akci */
+(function(){
+  var telLinks = document.querySelectorAll('a[href^="tel:"]');
+  if(!telLinks.length) return;
+
+  telLinks.forEach(function(a){
+    // jistota: žádný target na tel:
+    a.removeAttribute('target');
+
+    function dial(e){
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation && e.stopImmediatePropagation();
+      var href = a.getAttribute('href');
+      // iOS někdy potřebuje synchronní přesměrování
+      window.location.href = href;
+    }
+
+    // zachytit dřív než jiné skripty (capture: true)
+    a.addEventListener('touchend', dial, {capture:true, passive:false});
+    a.addEventListener('click', dial, {capture:true});
+  });
+})();
+</script>
 
 
 <!-- ===== /HILLSIDE 18 – CHECK-IN INFO (clean) ===== -->
