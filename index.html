@@ -1,0 +1,272 @@
+<!-- ===== HILLSIDE 18 – CHECK-IN INFO (CZ) – FINAL COMPLETE ===== -->
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sulphur+Point:wght@400;700&display=swap" rel="stylesheet">
+
+<div class="hs-wrap" style="max-width:900px;margin:0 auto;font-family:'Sulphur Point',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;line-height:1.58;color:#565655;background:#ffffff;padding:12px;">
+  <style>
+    :root{
+      --hs-dark:#565655;   /* primární barva */
+      --hs-soft:#7a7a79;   /* sekundární text */
+      --hs-bg:#f9f9f9;     /* karty (lehce stmavené) */
+      --hs-muted:#f4f4f4;  /* jemné pozadí pro boxy */
+      --hs-emph:#eceaea;   /* rámečky */
+    }
+    .hs-card{background:var(--hs-bg);border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.08);padding:22px;margin:18px 0;}
+    .hs-h2{margin:0 0 .6rem 0;font-size:1.4rem;color:var(--hs-dark);letter-spacing:.2px}
+    .hs-num{display:inline-block;width:34px;height:34px;line-height:34px;text-align:center;border-radius:10px;background:var(--hs-dark);color:#fff;font-weight:800;margin-right:.45rem;}
+
+    .hs-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:.5rem 0 0;}
+    .hs-btn{display:inline-flex;align-items:center;gap:.5rem;padding:12px 18px;border-radius:12px;font-weight:700;text-decoration:none;box-shadow:0 6px 16px rgba(0,0,0,.08);transition:transform .12s ease, box-shadow .12s ease, background .12s ease; cursor:pointer; user-select:none;}
+    .hs-btn:focus{outline:2px solid #cfcfcf;outline-offset:2px}
+    .hs-btn--fill{background:var(--hs-dark);color:#fff;border:2px solid var(--hs-dark);}
+    .hs-btn--fill:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(0,0,0,.12);}
+    .hs-btn--ghost{background:#fff;color:var(--hs-dark);border:2px solid var(--hs-dark);}
+    .hs-btn--ghost:hover{background:var(--hs-emph);}
+
+    .hs-pill{display:inline-block;background:#f7f7f7;border:1px solid #e5e5e5;color:var(--hs-dark);padding:.1rem .45rem;border-radius:8px;font-weight:bold;}
+    a{color:var(--hs-dark);}
+
+    /* Boxy s kódy – sjednocený formát */
+    .code-box{
+      font-family:ui-monospace,Menlo,Consolas,monospace;
+      background:linear-gradient(180deg,#fdfdfd 0%, #f3f3f3 100%);
+      border:2px solid var(--hs-dark);
+      color:var(--hs-dark);
+      padding:18px 20px;border-radius:14px;
+      font-size:1.9rem;font-weight:800;letter-spacing:.08em;text-align:center;
+      margin:12px 0;line-height:1.5;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.6), 0 4px 12px rgba(0,0,0,.06);
+      word-break:break-all;
+    }
+
+    .hs-img{max-width:100%;height:auto;border-radius:12px;box-shadow:0 3px 8px rgba(0,0,0,.1);}
+
+    @media (max-width:520px){
+      .hs-actions{flex-direction:column}
+      .hs-btn{justify-content:center}
+    }
+  </style>
+
+  <!-- HLAVIČKA -->
+  <div style="text-align:center;margin:8px 0 12px;">
+    <img src="https://763519.previoweb.app/wp-content/uploads/hillside-logo.webp" alt="Hillside 18" style="max-width:230px;height:auto;display:block;margin:0 auto 10px;">
+    <h1 style="margin:.2rem 0 .2rem;font-size:2.1rem;color:var(--hs-dark);font-weight:800;">Vítejte v Hillside&nbsp;18</h1>
+    <p style="margin:0 0 1rem;font-size:1.05rem;color:var(--hs-soft);font-weight:600;">Informace k příjezdu, parkování, přístupu, lyžárně, skibusu a check-outu</p>
+  </div>
+
+  <!-- 1) PŘED PŘÍJEZDEM -->
+  <div class="hs-card">
+    <h2 class="hs-h2"><span class="hs-num">1)</span>Před příjezdem</h2>
+    <div id="before-checkin">
+      <p>Prosíme o vyplnění <b>on-line check-inu</b> v aplikaci <b>Alfréd</b> (zákonná povinnost). Po dokončení obdržíte pokyny k příjezdu a přístupu.</p>
+      <div class="hs-actions">
+        <a id="btn-alf" href="https://alfred.previo.app" target="_blank" rel="noopener" class="hs-btn hs-btn--fill">Alfréd – on-line check-in</a>
+      </div>
+
+      <!-- volitelný box s kódem do Alfréda -->
+      <div id="alf-wrap" style="display:none;margin-top:10px;">
+        <p><b>Váš kód do Alfréda:</b></p>
+        <div id="alf-code" class="code-box" style="font-size:1.8rem;"></div>
+      </div>
+    </div>
+
+    <div id="after-checkin" style="display:none;margin-top:8px;">
+      <p style="color:var(--hs-dark);font-weight:bold;">✅ Děkujeme, on-line check-in je dokončen.</p>
+      <div class="hs-actions">
+        <a id="btn-alf-done" href="https://alfred.previo.app" target="_blank" rel="noopener" class="hs-btn hs-btn--ghost">Otevřít Alfréda (souhrn)</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2) PŘÍJEZD & PARKOVÁNÍ -->
+  <div class="hs-card">
+    <h2 class="hs-h2"><span class="hs-num">2)</span>Příjezd &amp; parkování</h2>
+    <p><b>Při příjezdu na místo prosím volejte +420&nbsp;731&nbsp;990&nbsp;087.</b><br>
+    Na tomto telefonu vám budeme k dispozici po celou dobu vašeho pobytu.</p>
+
+    <p>Příjezd je možný <b>16:00–20:00</b> v den začátku ubytování. Pokud plánujete pozdější příjezd, prosíme, oznamte to předem na stejné číslo.</p>
+
+    <p>Každý apartmán má vyhrazené <b>1 parkovací místo</b> na soukromém parkovišti nad domem. Parkujte ohleduplně.</p>
+
+    <div class="hs-actions" style="margin:12px 0;">
+      <a href="tel:+420731990087" class="hs-btn hs-btn--fill">📞 +420&nbsp;731&nbsp;990&nbsp;087</a>
+    </div>
+
+    <div class="hs-actions">
+      <a id="btn-nav" href="https://www.google.com/maps?q=50.41732841732963,12.977559146517642&t=m" target="_blank" rel="noopener" class="hs-btn hs-btn--ghost">📍 Navigovat k domu</a>
+    </div>
+
+    <div style="text-align:center;margin:14px 0 4px;">
+      <img class="hs-img" src="https://763519.previoweb.app/wp-content/uploads/parking.webp" alt="Příjezd a parkování – plán">
+    </div>
+  </div>
+
+  <!-- 3) PŘÍSTUP DO DOMU -->
+  <div class="hs-card">
+    <h2 class="hs-h2"><span class="hs-num">3)</span>Přístup do domu</h2>
+    <p>Přístup je <b>bezklíčový</b>. Vstupní dveře jsou osazeny klávesnicí a samozamykacím zámkem.</p>
+
+    <div id="door-wrap" style="margin:10px 0 16px;">
+      <!-- číslo apartmánu (stejný formát jako kód) -->
+      <div id="apt-code" class="code-box" style="display:none; margin-top:0; margin-bottom:10px;"></div>
+      <!-- kód dveří -->
+      <div style="font-size:.95rem;color:#7a7a79;margin-bottom:6px;">Kód pro hlavní vstup:</div>
+      <div id="door-code" class="code-box"></div>
+    </div>
+
+    <p>Po zadání čtyřmístného kódu se rozsvítí zelená a dveře se na několik vteřin odemknou. Chybný kód zrušíte tlačítkem <b>*</b> a po 5&nbsp;s zadáte znovu. Po zavření dveří se zámek automaticky zajistí.</p>
+
+    <div style="text-align:center;margin:12px 0;">
+      <img class="hs-img" src="https://763519.previoweb.app/wp-content/uploads/door-keypad.webp" alt="Klávesnice – přístup do apartmánu" style="max-width:320px;">
+    </div>
+  </div>
+
+  <!-- 4) OVLÁDÁNÍ TOPENÍ A SVĚTEL -->
+  <div class="hs-card">
+    <h2 class="hs-h2"><span class="hs-num">4)</span>Ovládání topení a světel</h2>
+    <p>Na zdi v hlavní místnosti je tablet pro ovládání topení a světel. Probuzení: <b>dvojité poklepání</b> na obrazovku.</p>
+    <p><b>Větrejte krátce a intenzivně.</b> Při otevřených oknech systém netopí.</p>
+  </div>
+
+  <!-- 5) VYBAVENÍ / KRB -->
+  <div class="hs-card">
+    <h2 class="hs-h2"><span class="hs-num">5)</span>Vybavení &amp; krb</h2>
+    <p>Byt je plně vybaven pro váš pohodlný pobyt. Prosíme o šetrné zacházení se zařízením.</p>
+    <div style="margin:10px 0 0;padding:12px 14px;border-left:4px solid #b91c1c;background:#fef2f2;border-radius:8px;">
+      <b>Krb – důležité</b><br>
+      Nemáte-li zkušenost, prosíme netopte – hrozí nebezpečí požáru. Za použití krbu účtujeme <b>500&nbsp;Kč/den</b> (včetně dřeva). Dřevo je v dřevníku pod hlavním parkovištěm u APT&nbsp;3. Popel nevynášejte denně – zajistíme.
+    </div>
+  </div>
+
+  <!-- 6) LYŽÁRNA -->
+  <div class="hs-card">
+    <h2 class="hs-h2"><span class="hs-num">6)</span>Lyžárna</h2>
+    <p><b>Lyže a snowboardy nenoste do bytu.</b> Lyžárna je v přízemí – po schodech od altánu dolů uličkou vlevo. Dveře otevřete <b>stejným kódem</b> jako hlavní vstup. K dispozici je vysoušeč obuvi (běží v intervalech).</p>
+    <div style="text-align:center;margin:12px 0;">
+      <img class="hs-img" src="https://763519.previoweb.app/wp-content/uploads/skiroom.webp" alt="Přístup k lyžárně" style="max-width:360px;">
+    </div>
+  </div>
+
+  <!-- 7) SKIBUS -->
+  <div class="hs-card">
+    <h2 class="hs-h2"><span class="hs-num">7)</span>Skibus</h2>
+    <p>Zastávka <b>C6 (Pod lanovkou)</b> je přibližně <b>30&nbsp;m</b> směrem na Klínovec. Aktuální jízdní řády a mapu linek najdete níže.</p>
+    <div class="hs-actions">
+      <a href="https://klinovec.cz/skibus/" target="_blank" rel="noopener" class="hs-btn hs-btn--fill">🚌 Jízdní řády skibusu</a>
+    </div>
+  </div>
+
+  <!-- 8) CHECK-OUT & KONTAKT -->
+  <div class="hs-card">
+    <h2 class="hs-h2"><span class="hs-num">8)</span>Check-out &amp; kontakt</h2>
+    <p><b>Check-out do <span class="hs-pill">10:00</span></b>. Potřebu doplatků hlaste alespoň hodinu předem na <a href="tel:+420840113114">+420&nbsp;840&nbsp;113&nbsp;114</a>. <i>Platby na místě pouze v hotovosti.</i></p>
+
+    <ul style="margin:.4rem 0 .6rem 1.2rem;">
+      <li><b>Podpora na místě:</b> <a href="tel:+420731990087">+420&nbsp;731&nbsp;990&nbsp;087</a></li>
+      <li><b>Recepce:</b> <a href="tel:+420840113114">+420&nbsp;840&nbsp;113&nbsp;114</a></li>
+    </ul>
+
+    <div class="hs-actions">
+      <a href="tel:+420840113114" class="hs-btn hs-btn--fill">📞 Zavolat recepci</a>
+      <a href="https://www.hillside18.cz" target="_blank" rel="noopener" class="hs-btn hs-btn--ghost">🌐 Web Hillside&nbsp;18</a>
+    </div>
+
+    <p style="margin-top:12px;color:#7a7a79;font-size:.95em;">Odkaz s kódy nepřeposílejte třetím osobám.</p>
+  </div>
+</div>
+
+<!-- LOGIKA: URL parametry (alf, door, done, unpaid, nav, apt) -->
+<script>
+(function(){
+  try{
+    var p    = new URLSearchParams(location.search);
+    var alf  = p.get('alf');      // kód nebo plná URL Alfréda
+    var door = p.get('door');     // kód hlavních dveří
+    var done = p.get('done');     // "1" => check-in hotový
+    var unpaid = p.get('unpaid'); // "1" => check-in hotový, zbývá platba
+    var nav  = p.get('nav');      // volitelně přepíše default GPS odkaz
+    var apt  = p.get('apt');      // číslo apartmánu 1–4
+
+    // Hotový check-in – proužek + přepnutí bloků
+    if(done === '1'){
+      var root=document.querySelector('.hs-wrap')||document.body;
+      var bar=document.createElement('div');
+      bar.textContent='✅ Děkujeme, on-line check-in je dokončen.';
+      bar.setAttribute('style','background:#f2f2f2;color:#565655;border:1px solid #e5e5e5;padding:10px 12px;border-radius:12px;margin:8px 0 12px;font-weight:700;text-align:center;');
+      root.insertBefore(bar, root.firstChild);
+      var before=document.getElementById('before-checkin'), after=document.getElementById('after-checkin');
+      if(before) before.style.display='none';
+      if(after)  after.style.display='block';
+    }
+
+    // Check-in hotový, zbývá platba – žlutý proužek + přepnutí bloků
+    if(unpaid === '1'){
+      var root2=document.querySelector('.hs-wrap')||document.body;
+      var bar2=document.createElement('div');
+      bar2.innerHTML='✅ On-line check-in je hotový, <b>zbývá ještě provést platbu</b>.';
+      bar2.setAttribute('style','background:#fff3cd;color:#664d03;border:1px solid #ffecb5;padding:10px 12px;border-radius:12px;margin:8px 0 12px;font-weight:700;text-align:center;');
+      root2.insertBefore(bar2, root2.firstChild);
+      var before2=document.getElementById('before-checkin'), after2=document.getElementById('after-checkin');
+      if(before2) before2.style.display='none';
+      if(after2)  after2.style.display='block';
+    }
+
+    // Alfréd: kód nebo plná URL
+    if(alf){
+      var code=null, full=null;
+      if(/^https?:\/\//i.test(alf)){
+        full=alf;
+        var m=alf.match(/\/login\/([^/?#]+)/i);
+        if(m&&m[1]) code=decodeURIComponent(m[1]);
+      }else{
+        code=alf;
+        full='https://alfred.previo.app/login/'+encodeURIComponent(alf);
+      }
+      var btn=document.getElementById('btn-alf');
+      var btnD=document.getElementById('btn-alf-done');
+      if(btn)  btn.href=full;
+      if(btnD) btnD.href=full;
+      var wrap=document.getElementById('alf-wrap'), box=document.getElementById('alf-code');
+      if(wrap&&box){ box.textContent=code||full; wrap.style.display='block'; }
+    }
+
+    // Apartment number
+    if(apt){
+      var a=document.getElementById('apt-code');
+      if(a){ a.textContent='Apartmán č. '+apt; a.style.display='block'; }
+    }
+
+    // Door code
+    if(door){
+      var d=document.getElementById('door-code');
+      if(d){ d.textContent=door; d.style.display='block'; }
+    }
+
+    // Navigace – volitelně přepíše default
+    var bn=document.getElementById('btn-nav');
+    if(nav && bn){ bn.href=nav; }
+
+    // Pojistka stylů pro kódy
+    function forceStyles(){
+      var A=document.getElementById('alf-code');
+      var D=document.getElementById('door-code');
+      var AP=document.getElementById('apt-code');
+      [A,D,AP].forEach(function(el){
+        if(!el) return;
+        el.style.setProperty('background','#f3f3f3','important');
+        el.style.setProperty('border-color','#565655','important');
+        el.style.setProperty('color','#565655','important');
+        el.style.setProperty('font-weight','800','important');
+        el.style.setProperty('font-size','1.9rem','important');
+      });
+    }
+    forceStyles();
+    var mo=new MutationObserver(function(){forceStyles();});
+    mo.observe(document.documentElement,{subtree:true,attributes:true,childList:true});
+    window.addEventListener('load',forceStyles);
+    setTimeout(forceStyles,400);
+    setTimeout(forceStyles,1200);
+  }catch(e){}
+})();
+</script>
+<!-- ===== /HILLSIDE 18 – CHECK-IN INFO (CZ) – FINAL COMPLETE ===== -->
