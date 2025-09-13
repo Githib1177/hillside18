@@ -367,12 +367,18 @@
         var b2=document.getElementById('btn-alf-done'); if(b2) b2.textContent=T.after_btn;
         var lbl=document.querySelector('#alf-wrap p b'); if(lbl) lbl.textContent=T.alf_code_label;
       }
-      // přepiš případné proužky
-      var bars=document.querySelectorAll('.hs-wrap > div[style*="font-weight:700"]');
-      for(var i=0;i<bars.length;i++){
-        var txt=bars[i].textContent||'';
-        bars[i].textContent = (/zbývá|Zahlung|payment/i.test(txt)) ? T.unpaid_bar : T.done_bar;
-      }
+      // přepiš informační proužky JISTĚ podle parametru
+var bars=document.querySelectorAll('.hs-wrap > div[style*="font-weight:700"]');
+for(var i=0;i<bars.length;i++){
+  bars[i].innerHTML = (unpaid === '1') ? T.unpaid_bar : T.done_bar;
+}
+
+// přelož i zprávu uvnitř bloku #after-checkin
+var acMsg = document.querySelector('#after-checkin p');
+if(acMsg){
+  acMsg.innerHTML = (unpaid === '1') ? T.unpaid_bar : T.done_bar;
+}
+
 
       // 2) Arrival & parking
       if(cards[1]){
