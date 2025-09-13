@@ -120,7 +120,10 @@
 
     if(!wpraw){ return status('Vyplň URL WordPress stránky.', true); }
     if(!alfRaw){ return status('Vyplň kód/URL Alfréda.', true); }
-    if(!/^\d{4}$/.test(door)){ return status('Vyplň 4-místný kód dveří.', true); }
+   if (door && !/^\d{4}$/.test(door)) {
+    return status('Kód dveří musí mít 4 číslice, nebo pole ponech prázdné.', true);
+}
+
     if(!apt){ return status('Vyplň číslo apartmánu.', true); }
 
     // vždy koncové lomítko, aby WP nedělalo redirect bez query
@@ -130,7 +133,8 @@
     const params = new URLSearchParams();
     if (lang && lang !== 'cs') params.set('lang', lang); // cs je výchozí, nemusíme posílat
     params.set('alf', alfRaw);   // může být kód i plná URL
-    params.set('door', door);
+    if (door) params.set('door', door);
+
     params.set('apt', apt);
     if (st === 'unpaid') params.set('unpaid', '1');
     else if (st === 'done') params.set('done', '1');
