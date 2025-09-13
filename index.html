@@ -237,7 +237,26 @@
     if(apt){ var a=$('#apt-code'); if(a){ a.textContent='Apartmán č. '+apt; a.style.display='block'; } }
 
     // Dveře
-    if(door){ var d=$('#door-code'); if(d){ d.textContent=door; d.style.display='block'; } }
+    // Door code (+ fallback na XXXX + zpráva)
+var d=document.getElementById('door-code');
+if(door && d){
+  d.textContent=door; d.style.display='block';
+}else if(d){
+  d.textContent='XXXX'; d.style.display='block';
+  d.setAttribute('data-missing', (unpaid==='1' ? 'payment' : 'checkin'));
+
+  var hint=document.getElementById('door-msg');
+  if(!hint){
+    hint=document.createElement('div');
+    hint.id='door-msg';
+    hint.style.cssText='margin-top:6px;color:#7a7a79;font-size:.95rem;text-align:center;';
+    d.parentNode.appendChild(hint);
+  }
+  hint.textContent = (unpaid==='1')
+    ? 'Dokončete prosím platbu. Kód dveří se zde zobrazí po připsání platby.'
+    : 'Dokončete prosím on-line check-in v aplikaci Alfréd. Kód dveří se zde zobrazí po dokončení.';
+}
+
 
     // Navigace
     var bn=$('#btn-nav'); if(nav && bn){ bn.href=nav; }
@@ -292,6 +311,9 @@
           access_p1_html:'Access is <b>keyless</b>. The entrance door is equipped with a keypad and an auto-locking lock.',
           access_p2_html:'After entering the four-digit code the light turns green and the door unlocks for a few seconds. Cancel a wrong code with <b>*</b> and enter again after 5&nbsp;s. After closing, the lock secures itself automatically.',
           door_label:'Main entrance code:',
+          missingCheckin:'Please complete the online check-in in the Alfréd app. The door code will appear here once completed.',
+missingPayment:'Please complete the payment. The door code will appear here once the payment is received.',
+
           heat_h:'Heating & lights',
           heat_p1_html:'A wall-mounted tablet in the main room controls heating and lights. To wake it up, <b>double-tap</b> the screen.',
           heat_p2_html:'<b>Ventilate briefly and intensively.</b> With open windows the system does not heat.',
@@ -331,6 +353,10 @@
           access_p1_html:'Der Zugang ist <b>schlüssellos</b>. Die Eingangstür hat eine Tastatur und ein Selbstverriegelungsschloss.',
           access_p2_html:'Nach Eingabe des vierstelligen Codes leuchtet Grün und die Tür entriegelt für einige Sekunden. Falschen Code mit <b>*</b> löschen und nach 5&nbsp;s erneut eingeben. Nach dem Schließen verriegelt das Schloss automatisch.',
           door_label:'Code für den Haupteingang:',
+          door_label: 'Code für den Haupteingang:',
+missingCheckin: 'Bitte schließen Sie das Online-Check-in in der Alfréd-App ab. Der Türcode erscheint hier nach Abschluss.',
+missingPayment: 'Bitte schließen Sie die Zahlung ab. Der Türcode erscheint hier nach Zahlungseingang.',
+
           heat_h:'Heizung & Licht',
           heat_p1_html:'An der Wand im Wohnraum befindet sich ein Tablet zur Steuerung von Heizung und Licht. Aufwecken: <b>Doppeltippen</b> auf den Bildschirm.',
           heat_p2_html:'<b>Bitte kurz und intensiv lüften.</b> Bei geöffneten Fenstern heizt das System nicht.',
