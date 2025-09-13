@@ -353,9 +353,13 @@
         }
       }[lang];
 
-      // HLAVIČKA
-      var header=document.querySelector('.hs-wrap > div');
-      if(header){ var h1=header.querySelector('h1'); if(h1) h1.textContent=T.welcome; var pHead=header.querySelector('p'); if(pHead) pHead.textContent=T.sub; }
+      // HLAVIČKA (robustně – bez ohledu na vložený proužek)
+var h1 = document.querySelector('.hs-wrap h1');
+if (h1) h1.textContent = T.welcome;
+
+var sub = document.querySelector('.hs-wrap h1 + p');
+if (sub) sub.textContent = T.sub;
+
 
       var cards=document.querySelectorAll('.hs-card');
 
