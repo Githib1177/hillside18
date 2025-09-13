@@ -371,17 +371,18 @@ if (sub) sub.textContent = T.sub;
         var b2=document.getElementById('btn-alf-done'); if(b2) b2.textContent=T.after_btn;
         var lbl=document.querySelector('#alf-wrap p b'); if(lbl) lbl.textContent=T.alf_code_label;
       }
-      // přepiš informační proužky JISTĚ podle parametru
+    // přepiš informační proužky JISTĚ podle parametru
 var bars=document.querySelectorAll('.hs-wrap > div[style*="font-weight:700"]');
 for(var i=0;i<bars.length;i++){
   bars[i].innerHTML = (unpaid === '1') ? T.unpaid_bar : T.done_bar;
 }
 
-// přelož i zprávu uvnitř bloku #after-checkin
+// přelož i zprávu uvnitř bloku #after-checkin (karta 1)
 var acMsg = document.querySelector('#after-checkin p');
 if(acMsg){
   acMsg.innerHTML = (unpaid === '1') ? T.unpaid_bar : T.done_bar;
 }
+
 
 
       // 2) Arrival & parking
