@@ -270,154 +270,274 @@
 })();
 </script>
 <script>
-/* --- i18n: minimalistické přepnutí CZ/EN/DE podle ?lang= --- */
+<!-- i18n: CZ/EN/DE – přeloží i celé odstavce -->
+<script>
 (function(){
-  // 1) Zjisti jazyk: ?lang=en|de|cs  (fallback cs)
-  var sp = new URLSearchParams(location.search);
-  var ref = document.referrer ? new URL(document.referrer) : null;
-  var lang = (sp.get('lang') || (ref ? (ref.pathname.match(/\/(en|de)\//i)?.[1]||'') : '') || 'cs').toLowerCase();
-  if(!/^(cs|en|de)$/.test(lang)) lang='cs';
+  function run(){
+    try{
+      var sp = new URLSearchParams(location.search);
+      var ref = null; try{ if(document.referrer) ref = new URL(document.referrer); }catch(e){}
+      var fromRef=''; if(ref){ var mm=ref.pathname.match(/\/(en|de|cs)\//i); fromRef=(mm&&mm[1])?mm[1].toLowerCase():''; }
+      var lang=(sp.get('lang')||fromRef||'cs').toLowerCase();
+      if(!/^(cs|en|de)$/.test(lang)) lang='cs';
+      if(lang==='cs') return; // čeština je už v HTML
 
-  // 2) Překlady klíčových textů, které jsou na stránce vidět
-  var T = {
-    cs: {
-      welcome: 'Vítejte v Hillside 18',
-      sub: 'Informace k příjezdu, parkování, přístupu, lyžárně, skibusu a check-outu',
-      before_h: 'Před příjezdem',
-      before_p: 'Prosíme o vyplnění on-line check-inu v aplikaci Alfréd (zákonná povinnost). Po dokončení obdržíte pokyny k příjezdu a přístupu.',
-      alf_btn: 'Alfréd – on-line check-in',
-      alf_code_label: 'Váš kód do Alfréda:',
-      done_bar: '✅ Děkujeme, on-line check-in je dokončen.',
-      unpaid_bar: '✅ On-line check-in je hotový, zbývá ještě provést platbu.',
-      after_btn: 'Otevřít Alfréda (souhrn)',
-      arr_h: 'Příjezd & parkování',
-      phone_lead: 'Při příjezdu na místo prosím volejte +420 731 990 087.',
-      nav_btn: '📍 Navigovat k domu',
-      access_h: 'Přístup do domu',
-      door_label: 'Kód pro hlavní vstup:',
-      heat_h: 'Ovládání topení a světel',
-      equip_h: 'Vybavení & krb',
-      ski_h: 'Lyžárna',
-      bus_h: 'Skibus',
-      bus_btn: '🚌 Jízdní řády skibusu',
-      co_h: 'Check-out & kontakt',
-      co_btn_call: '📞 Zavolat recepci',
-      web_btn: '🌐 Web Hillside 18',
-      warn_share: 'Odkaz s kódy nepřeposílejte třetím osobám.',
-      apt_prefix: 'Apartmán č. '
-    },
-    en: {
-      welcome: 'Welcome to Hillside 18',
-      sub: 'Info for arrival, parking, access, ski room, ski bus and check-out',
-      before_h: 'Before arrival',
-      before_p: 'Please complete the online check-in in the Alfréd app (legal requirement). After completion you will receive arrival and access instructions.',
-      alf_btn: 'Alfréd – online check-in',
-      alf_code_label: 'Your Alfréd code:',
-      done_bar: '✅ Thank you, online check-in is complete.',
-      unpaid_bar: '✅ Online check-in is complete, payment is still required.',
-      after_btn: 'Open Alfréd (summary)',
-      arr_h: 'Arrival & parking',
-      phone_lead: 'Upon arrival please call +420 731 990 087.',
-      nav_btn: '📍 Navigate to the house',
-      access_h: 'Access to the house',
-      door_label: 'Main entrance code:',
-      heat_h: 'Heating & lights',
-      equip_h: 'Equipment & fireplace',
-      ski_h: 'Ski room',
-      bus_h: 'Ski bus',
-      bus_btn: '🚌 Ski bus timetables',
-      co_h: 'Check-out & contact',
-      co_btn_call: '📞 Call reception',
-      web_btn: '🌐 Hillside 18 website',
-      warn_share: 'Do not share this link with third parties.',
-      apt_prefix: 'Apartment No. '
-    },
-    de: {
-      welcome: 'Willkommen im Hillside 18',
-      sub: 'Informationen zu Anreise, Parken, Zugang, Skiraum, Skibus und Check-out',
-      before_h: 'Vor der Anreise',
-      before_p: 'Bitte füllen Sie das Online-Check-in in der Alfréd-App aus (gesetzliche Pflicht). Danach erhalten Sie Anreise- und Zugangshinweise.',
-      alf_btn: 'Alfréd – Online-Check-in',
-      alf_code_label: 'Ihr Alfréd-Code:',
-      done_bar: '✅ Vielen Dank, Online-Check-in ist abgeschlossen.',
-      unpaid_bar: '✅ Online-Check-in abgeschlossen, Zahlung steht noch aus.',
-      after_btn: 'Alfréd öffnen (Übersicht)',
-      arr_h: 'Anreise & Parken',
-      phone_lead: 'Bei Ankunft rufen Sie bitte +420 731 990 087 an.',
-      nav_btn: '📍 Zum Haus navigieren',
-      access_h: 'Zugang zum Haus',
-      door_label: 'Code für den Haupteingang:',
-      heat_h: 'Heizung & Licht',
-      equip_h: 'Ausstattung & Kamin',
-      ski_h: 'Skiraum',
-      bus_h: 'Skibus',
-      bus_btn: '🚌 Skibus-Fahrpläne',
-      co_h: 'Check-out & Kontakt',
-      co_btn_call: '📞 Rezeption anrufen',
-      web_btn: '🌐 Hillside 18 Webseite',
-      warn_share: 'Geben Sie diesen Link nicht an Dritte weiter.',
-      apt_prefix: 'Apartment Nr. '
-    }
-  };
-
-  // 3) Pomocné nastavení textu, když element existuje
-  function setTxt(sel, txt){ var el=document.querySelector(sel); if(el&&txt!=null){ el.textContent=txt; } }
-
-  // 4) Aplikuj překlady – mapujeme jen to, co je na stránce, zbytek zachován
-  if(lang!=='cs'){
-    setTxt('h1', T[lang].welcome);
-    setTxt('.hs-wrap > div:nth-of-type(1) p', T[lang].sub);
-
-    setTxt('#before-checkin .hs-h2', T[lang].before_h);
-    setTxt('#before-checkin p', T[lang].before_p);
-    setTxt('#btn-alf', T[lang].alf_btn);
-    setTxt('#btn-alf-done', T[lang].after_btn);
-
-    // Štítek kódu Alfréd
-    var lblAlf=document.querySelector('#alf-wrap p b'); if(lblAlf){ lblAlf.textContent=T[lang].alf_code_label; }
-
-    // Nadpisy dalších sekcí
-    var cards = document.querySelectorAll('.hs-card .hs-h2');
-    if(cards[1]) cards[1].lastChild.nodeValue = ' ' + T[lang].arr_h;
-    if(cards[2]) cards[2].lastChild.nodeValue = ' ' + T[lang].access_h;
-    if(cards[3]) cards[3].lastChild.nodeValue = ' ' + T[lang].heat_h;
-    if(cards[4]) cards[4].lastChild.nodeValue = ' ' + T[lang].equip_h;
-    if(cards[5]) cards[5].lastChild.nodeValue = ' ' + T[lang].ski_h;
-    if(cards[6]) cards[6].lastChild.nodeValue = ' ' + T[lang].bus_h;
-    if(cards[7]) cards[7].lastChild.nodeValue = ' ' + T[lang].co_h;
-
-    // Další tlačítka a popisky
-    setTxt('#btn-nav', T[lang].nav_btn);
-    var doorLbl = document.querySelector('#door-wrap div[style*="font-size"]'); if(doorLbl){ doorLbl.textContent = T[lang].door_label; }
-    var coBtns = document.querySelectorAll('.hs-card a.hs-btn'); // necháme jen klíčová
-    // První v poslední kartě je „Zavolat recepci“; druhé „Web“
-    var lastCard = document.querySelectorAll('.hs-card')?.[7];
-    if(lastCard){
-      var btns = lastCard.querySelectorAll('.hs-actions .hs-btn');
-      if(btns[0]) btns[0].textContent = T[lang].co_btn_call;
-      if(btns[1]) btns[1].textContent = T[lang].web_btn;
-      var warn = lastCard.querySelector('p[style*="color:#7a7a79"]');
-      if(warn) warn.textContent = T[lang].warn_share;
-    }
-
-    // Přepiš obsah případných informačních proužků, pokud existují
-    var bars = document.querySelectorAll('.hs-wrap > div[style*="font-weight:700"]');
-    bars.forEach(function(b){
-      if(b.textContent.indexOf('zbývá')>-1 || b.textContent.indexOf('Zahlung')>-1 || b.textContent.indexOf('payment')>-1){
-        b.textContent = T[lang].unpaid_bar;
-      }else{
-        b.textContent = T[lang].done_bar;
+      // Pomocné: přímé <p> potomky v kartě (ignorujeme akce/obrázky)
+      function directPs(card){
+        var out=[], ch=card.children;
+        for(var i=0;i<ch.length;i++){ if(ch[i].tagName==='P') out.push(ch[i]); }
+        return out;
       }
-    });
+      function setTxt(sel, txt){ var el=document.querySelector(sel); if(el&&txt!=null) el.textContent=txt; }
 
-    // Prefix pro "Apartmán č. X"
-    var aptEl = document.getElementById('apt-code');
-    if(aptEl && aptEl.textContent){
-      var n = aptEl.textContent.replace(/\D+/g,'');
-      aptEl.textContent = T[lang].apt_prefix + n;
+      var T = {
+        en: {
+          // HLAVIČKA
+          welcome: 'Welcome to Hillside 18',
+          sub: 'Info for arrival, parking, access, ski room, ski bus and check-out',
+
+          // 1) BEFORE ARRIVAL
+          before_h: 'Before arrival',
+          before_p_html:
+            'Please complete the <b>online check-in</b> in the <b>Alfréd</b> app (legal requirement). After completion you will receive instructions for arrival and access.',
+          alf_btn: 'Alfréd – online check-in',
+          alf_code_label: 'Your Alfréd code:',
+          after_btn: 'Open Alfréd (summary)',
+          done_bar: '✅ Thank you, online check-in is complete.',
+          unpaid_bar: '✅ Online check-in is complete, payment is still required.',
+
+          // 2) ARRIVAL & PARKING
+          arr_h: 'Arrival & parking',
+          arr_p1_html:
+            '<b>Upon arrival please call +420&nbsp;731&nbsp;990&nbsp;087.</b><br>We will be available on this phone throughout your stay.',
+          arr_p2_html:
+            'Check-in is possible <b>16:00–20:00</b> on the day of arrival. If you plan a later arrival, please let us know in advance at the same number.',
+          arr_p3_html:
+            'Each apartment has <b>1 parking space</b> reserved on the private parking area above the house. Please park considerately.',
+          nav_btn: '📍 Navigate to the house',
+
+          // 3) ACCESS
+          access_h: 'Access to the house',
+          access_p1_html:
+            'Access is <b>keyless</b>. The entrance door is equipped with a keypad and an auto-locking lock.',
+          access_p2_html:
+            'After entering the four-digit code the light turns green and the door unlocks for a few seconds. Cancel a wrong code with <b>*</b> and enter again after 5&nbsp;s. After closing, the lock secures itself automatically.',
+          door_label: 'Main entrance code:',
+
+          // 4) HEATING & LIGHTS
+          heat_h: 'Heating & lights',
+          heat_p1_html:
+            'A wall-mounted tablet in the main room controls heating and lights. To wake it up, <b>double-tap</b> the screen.',
+          heat_p2_html:
+            '<b>Ventilate briefly and intensively.</b> With open windows the system does not heat.',
+
+          // 5) EQUIPMENT / FIREPLACE
+          equip_h: 'Equipment & fireplace',
+          equip_p1_html:
+            'The apartment is fully equipped for a comfortable stay. Please handle all equipment with care.',
+          equip_warn_html:
+            '<b>Fireplace – important</b><br>If you have no experience, please do not use it — fire hazard. Using the fireplace is charged <b>500&nbsp;CZK/day</b> (wood included). Wood is in the woodshed below the main car park by APT&nbsp;3. Do not remove the ash daily — we will take care of it.',
+
+          // 6) SKI ROOM
+          ski_h: 'Ski room',
+          ski_p1_html:
+            '<b>Do not bring skis or snowboards into the apartment.</b> The ski room is on the ground floor — from the gazebo go down the stairs, then left along the passage. The door opens with the <b>same code</b> as the main entrance. A boot dryer is available (runs in intervals).',
+
+          // 7) SKI BUS
+          bus_h: 'Ski bus',
+          bus_p1_html:
+            'Stop <b>C6 (Under the chairlift)</b> is approximately <b>30&nbsp;m</b> towards Klínovec. Current timetables and route map are below.',
+          bus_btn: '🚌 Ski bus timetables',
+
+          // 8) CHECK-OUT & CONTACT
+          co_h: 'Check-out & contact',
+          co_p1_html:
+            '<b>Check-out by <span class="hs-pill">10:00</span></b>. Please report any remaining payments at least one hour in advance at <a href="tel:+420840113114">+420&nbsp;840&nbsp;113&nbsp;114</a>. <i>On-site payments in cash only.</i>',
+          support_label: 'On-site support',
+          reception_label: 'Reception',
+          co_btn_call: '📞 Call reception',
+          web_btn: '🌐 Hillside 18 website',
+          warn_share: 'Do not share this link with third parties.',
+          apt_prefix: 'Apartment No. '
+        },
+
+        de: {
+          // HLAVIČKA
+          welcome: 'Willkommen im Hillside 18',
+          sub: 'Informationen zu Anreise, Parken, Zugang, Skiraum, Skibus und Check-out',
+
+          // 1) VOR DER ANREISE
+          before_h: 'Vor der Anreise',
+          before_p_html:
+            'Bitte füllen Sie das <b>Online-Check-in</b> in der <b>Alfréd</b>-App aus (gesetzliche Pflicht). Danach erhalten Sie Hinweise zur Anreise und zum Zugang.',
+          alf_btn: 'Alfréd – Online-Check-in',
+          alf_code_label: 'Ihr Alfréd-Code:',
+          after_btn: 'Alfréd öffnen (Übersicht)',
+          done_bar: '✅ Vielen Dank, Online-Check-in ist abgeschlossen.',
+          unpaid_bar: '✅ Online-Check-in abgeschlossen, Zahlung steht noch aus.',
+
+          // 2) ANREISE & PARKEN
+          arr_h: 'Anreise & Parken',
+          arr_p1_html:
+            '<b>Bei Ankunft rufen Sie bitte +420&nbsp;731&nbsp;990&nbsp;087 an.</b><br>Unter dieser Nummer sind wir während Ihres gesamten Aufenthalts erreichbar.',
+          arr_p2_html:
+            'Anreise ist <b>16:00–20:00</b> am Anreisetag möglich. Bei späterer Ankunft informieren Sie uns bitte vorab unter derselben Nummer.',
+          arr_p3_html:
+            'Jedes Apartment hat <b>1 Parkplatz</b> auf dem privaten Parkplatz oberhalb des Hauses. Bitte parken Sie rücksichtsvoll.',
+          nav_btn: '📍 Zum Haus navigieren',
+
+          // 3) ZUGANG
+          access_h: 'Zugang zum Haus',
+          access_p1_html:
+            'Der Zugang ist <b>schlüssellos</b>. Die Eingangstür hat eine Tastatur und ein Selbstverriegelungsschloss.',
+          access_p2_html:
+            'Nach Eingabe des vierstelligen Codes leuchtet Grün und die Tür entriegelt für einige Sekunden. Falschen Code mit <b>*</b> löschen und nach 5&nbsp;s erneut eingeben. Nach dem Schließen verriegelt das Schloss automatisch.',
+          door_label: 'Code für den Haupteingang:',
+
+          // 4) HEIZUNG & LICHT
+          heat_h: 'Heizung & Licht',
+          heat_p1_html:
+            'An der Wand im Wohnraum befindet sich ein Tablet zur Steuerung von Heizung und Licht. Aufwecken: <b>Doppeltippen</b> auf den Bildschirm.',
+          heat_p2_html:
+            '<b>Bitte kurz und intensiv lüften.</b> Bei geöffneten Fenstern heizt das System nicht.',
+
+          // 5) AUSSTATTUNG / KAMIN
+          equip_h: 'Ausstattung & Kamin',
+          equip_p1_html:
+            'Das Apartment ist vollständig ausgestattet. Bitte gehen Sie sorgsam mit der Einrichtung um.',
+          equip_warn_html:
+            '<b>Kamin – wichtig</b><br>Ohne Erfahrung bitte nicht benutzen – Brandgefahr. Nutzung des Kamins kostet <b>500&nbsp;CZK/Tag</b> (inkl. Holz). Holz liegt im Holzschuppen unter dem Hauptparkplatz bei APT&nbsp;3. Die Asche bitte nicht täglich entsorgen – wir kümmern uns darum.',
+
+          // 6) SKIRAUM
+          ski_h: 'Skiraum',
+          ski_p1_html:
+            '<b>Skier und Snowboards nicht in das Apartment bringen.</b> Der Skiraum befindet sich im Erdgeschoss – vom Pavillon die Treppe hinunter, links durch den Gang. Die Tür öffnet sich mit dem <b>gleichen Code</b> wie der Haupteingang. Ein Schuhtrockner ist vorhanden (läuft in Intervallen).',
+
+          // 7) SKIBUS
+          bus_h: 'Skibus',
+          bus_p1_html:
+            'Die Haltestelle <b>C6 (Unter dem Sessellift)</b> ist ca. <b>30&nbsp;m</b> in Richtung Klínovec. Aktuelle Fahrpläne und Linienkarte unten.',
+          bus_btn: '🚌 Skibus-Fahrpläne',
+
+          // 8) CHECK-OUT & KONTAKT
+          co_h: 'Check-out & Kontakt',
+          co_p1_html:
+            '<b>Check-out bis <span class="hs-pill">10:00</span></b>. Bitte melden Sie Zahlungsbedarfe mindestens eine Stunde vorher unter <a href="tel:+420840113114">+420&nbsp;840&nbsp;113&nbsp;114</a>. <i>Zahlung vor Ort nur in bar.</i>',
+          support_label: 'Unterstützung vor Ort',
+          reception_label: 'Rezeption',
+          co_btn_call: '📞 Rezeption anrufen',
+          web_btn: '🌐 Hillside 18 Webseite',
+          warn_share: 'Geben Sie diesen Link nicht an Dritte weiter.',
+          apt_prefix: 'Apartment Nr. '
+        }
+      };
+
+      var D = T[lang];
+
+      /* ---- HLAVIČKA ---- */
+      var header=document.querySelector('.hs-wrap > div');
+      if(header){
+        var h1=header.querySelector('h1'); if(h1) h1.textContent=D.welcome;
+        var p=header.querySelector('p');   if(p)  p.textContent=D.sub;
+      }
+
+      /* ---- 1) PŘED PŘÍJEZDEM ---- */
+      var sec1h=document.querySelector('#before-checkin .hs-h2');
+      if(sec1h && sec1h.lastChild) sec1h.lastChild.nodeValue=' '+D.before_h;
+      var sec1p=document.querySelector('#before-checkin p'); if(sec1p) sec1p.innerHTML=D.before_p_html;
+      var bAlf=document.getElementById('btn-alf'); if(bAlf) bAlf.textContent=D.alf_btn;
+      var bAlfD=document.getElementById('btn-alf-done'); if(bAlfD) bAlfD.textContent=D.after_btn;
+      var lblAlf=document.querySelector('#alf-wrap p b'); if(lblAlf) lblAlf.textContent=D.alf_code_label;
+
+      // informační proužky (pokud existují)
+      var bars=document.querySelectorAll('.hs-wrap > div[style*="font-weight:700"]');
+      for(var i=0;i<bars.length;i++){
+        var txt=bars[i].textContent||'';
+        if(/zbývá|Zahlung|payment/i.test(txt)) bars[i].textContent=D.unpaid_bar;
+        else bars[i].textContent=D.done_bar;
+      }
+
+      var cards=document.querySelectorAll('.hs-card');
+
+      /* ---- 2) PŘÍJEZD & PARKOVÁNÍ ---- */
+      if(cards[1]){
+        var h=cards[1].querySelector('.hs-h2'); if(h && h.lastChild) h.lastChild.nodeValue=' '+D.arr_h;
+        var ps=directPs(cards[1]);
+        if(ps[0]) ps[0].innerHTML=D.arr_p1_html;
+        if(ps[1]) ps[1].innerHTML=D.arr_p2_html;
+        if(ps[2]) ps[2].innerHTML=D.arr_p3_html;
+        var navBtn=document.getElementById('btn-nav'); if(navBtn) navBtn.textContent=D.nav_btn;
+      }
+
+      /* ---- 3) PŘÍSTUP DO DOMU ---- */
+      if(cards[2]){
+        var h3=cards[2].querySelector('.hs-h2'); if(h3 && h3.lastChild) h3.lastChild.nodeValue=' '+D.access_h;
+        var ps3=directPs(cards[2]);
+        if(ps3[0]) ps3[0].innerHTML=D.access_p1_html;
+        if(ps3[1]) ps3[1].innerHTML=D.access_p2_html;
+        var doorLbl=document.querySelector('#door-wrap div[style*="font-size"]'); if(doorLbl) doorLbl.textContent=D.door_label;
+      }
+
+      /* ---- 4) OVLÁDÁNÍ ---- */
+      if(cards[3]){
+        var h4=cards[3].querySelector('.hs-h2'); if(h4 && h4.lastChild) h4.lastChild.nodeValue=' '+D.heat_h;
+        var ps4=directPs(cards[3]);
+        if(ps4[0]) ps4[0].innerHTML=D.heat_p1_html;
+        if(ps4[1]) ps4[1].innerHTML=D.heat_p2_html;
+      }
+
+      /* ---- 5) VYBAVENÍ / KRB ---- */
+      if(cards[4]){
+        var h5=cards[4].querySelector('.hs-h2'); if(h5 && h5.lastChild) h5.lastChild.nodeValue=' '+D.equip_h;
+        var ps5=directPs(cards[4]);
+        if(ps5[0]) ps5[0].innerHTML=D.equip_p1_html;
+        var warn=cards[4].querySelector('div[style*="border-left"]'); if(warn) warn.innerHTML=D.equip_warn_html;
+      }
+
+      /* ---- 6) LYŽÁRNA ---- */
+      if(cards[5]){
+        var h6=cards[5].querySelector('.hs-h2'); if(h6 && h6.lastChild) h6.lastChild.nodeValue=' '+D.ski_h;
+        var ps6=directPs(cards[5]);
+        if(ps6[0]) ps6[0].innerHTML=D.ski_p1_html;
+      }
+
+      /* ---- 7) SKIBUS ---- */
+      if(cards[6]){
+        var h7=cards[6].querySelector('.hs-h2'); if(h7 && h7.lastChild) h7.lastChild.nodeValue=' '+D.bus_h;
+        var ps7=directPs(cards[6]);
+        if(ps7[0]) ps7[0].innerHTML=D.bus_p1_html;
+        var busBtn=cards[6].querySelector('.hs-actions .hs-btn'); if(busBtn) busBtn.textContent=D.bus_btn;
+      }
+
+      /* ---- 8) CHECK-OUT & KONTAKT ---- */
+      if(cards[7]){
+        var h8=cards[7].querySelector('.hs-h2'); if(h8 && h8.lastChild) h8.lastChild.nodeValue=' '+D.co_h;
+        var ps8=directPs(cards[7]);
+        if(ps8[0]) ps8[0].innerHTML=D.co_p1_html;
+        // seznam kontaktů
+        var lis=cards[7].querySelectorAll('li');
+        if(lis && lis[0]) lis[0].innerHTML='<b>'+D.support_label+':</b> <a href="tel:+420731990087">+420&nbsp;731&nbsp;990&nbsp;087</a>';
+        if(lis && lis[1]) lis[1].innerHTML='<b>'+D.reception_label+':</b> <a href="tel:+420840113114">+420&nbsp;840&nbsp;113&nbsp;114</a>';
+        // tlačítka + varování
+        var btns=cards[7].querySelectorAll('.hs-actions .hs-btn');
+        if(btns[0]) btns[0].textContent=D.co_btn_call;
+        if(btns[1]) btns[1].textContent=D.web_btn;
+        var warn2=cards[7].querySelector('p[style*="color:#7a7a79"]'); if(warn2) warn2.textContent=D.warn_share;
+      }
+
+      // Prefix apartmánu (pokud je zobrazen)
+      var aptEl=document.getElementById('apt-code');
+      if(aptEl && aptEl.textContent){
+        var n=(aptEl.textContent.match(/\d+/)||[''])[0];
+        aptEl.textContent = (D.apt_prefix || 'Apartmán č. ')+ n;
+      }
+    }catch(e){
+      try{ console.warn('i18n skipped:', e); }catch(_){}
     }
   }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', run); } else { run(); }
 })();
 </script>
+
 
 <!-- ===== /HILLSIDE 18 – CHECK-IN INFO (CZ) – FINAL COMPLETE ===== -->
