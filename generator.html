@@ -18,7 +18,7 @@
   .g3{grid-template-columns:1fr 1fr 1fr}
   @media(max-width:760px){.g2,.g3{grid-template-columns:1fr}}
   .row{display:flex;gap:10px;flex-wrap:wrap}
-  .btn{appearance:none;border:1px solid #cbd5e1;background:#fff;border-radius:10px;padding:10px 14px;cursor:pointer}
+  .btn{appearance:none;border:1px solid #cbd5e1;background:#fff;border-radius:10px;padding:10px 14px;cursor:pointer;text-decoration:none;text-align:center}
   .btn-primary{background:var(--btn);border-color:var(--btn);color:#fff}
   .muted{color:var(--muted);font-size:13px}
   .out{padding:10px 12px;border:1px dashed #cbd5e1;border-radius:10px;background:#fcfcfd;word-break:break-all}
@@ -44,7 +44,7 @@
         <input id="door" placeholder="1234" inputmode="numeric" maxlength="4" style="flex:1">
         <button class="btn" onclick="genDoor()">Vygenerovat</button>
       </div>
-      <div class="muted">Generátor vytváří 4místné kódy 1000–9999. Můžeš přepsat ručně.</div>
+      <div class="muted">Generuje 4-místné kódy 1000–9999 (lze přepsat).</div>
     </div>
     <div>
       <label>Číslo apartmánu</label>
@@ -63,11 +63,12 @@
   </div>
 
   <div class="card">
-    <div class="row">
+    <div class="row" style="gap:8px">
       <button class="btn btn-primary" onclick="build()">Vytvořit odkaz</button>
+      <a id="open" class="btn btn-primary" target="_blank" rel="noopener">Otevřít WP odkaz</a>
       <button class="btn" onclick="copyLink()">Kopírovat</button>
-      <a id="wa" class="btn" target="_blank" rel="noopener">Odeslat WhatsApp</a>
-      <a id="sms" class="btn" target="_blank" rel="noopener">Odeslat SMS</a>
+      <a id="wa" class="btn" target="_blank" rel="noopener">WhatsApp</a>
+      <a id="sms" class="btn" target="_blank" rel="noopener">SMS</a>
       <a id="mail" class="btn" target="_blank" rel="noopener">E-mail</a>
       <span id="status" class="right muted"></span>
     </div>
@@ -76,18 +77,17 @@
 
   <div class="card">
     <label>Výchozí URL WordPress stránky</label>
-    <input id="wpurl" placeholder="https://www.hillside18.cz/checkin">
+    <input id="wpurl" placeholder="https://www.hillside18.cz/cs/check-in/">
     <div class="row" style="margin-top:8px">
       <button class="btn" onclick="saveDefaults()">Uložit jako výchozí</button>
       <button class="btn" onclick="loadDefaults()">Načíst výchozí</button>
       <button class="btn" onclick="clearAll()">Vymazat vše</button>
     </div>
-    <p class="muted" style="margin-top:8px">Doporučené: <code>https://www.hillside18.cz/checkin</code> (URL tvé WP stránky s iframem).</p>
+    <p class="muted" style="margin-top:8px">Použij: <code>https://www.hillside18.cz/cs/check-in/</code> (pozor na koncové „/“).</p>
   </div>
 </div>
 
 <script>
-  // === Pomocné ===
   const $ = id => document.getElementById(id);
   const radio = name => [...document.querySelectorAll('input[name="'+name+'"]')].find(r=>r.checked)?.value;
 
@@ -95,7 +95,6 @@
     $('door').value = String(Math.floor(1000 + Math.random()*9000));
   }
 
- <script>
   function build(){
     const wpraw = ($('wpurl').value || '').trim();
     const alfRaw = ($('alf').value || '').trim();
@@ -105,23 +104,23 @@
 
     if(!wpraw){ return status('Vyplň URL WordPress stránky.', true); }
     if(!alfRaw){ return status('Vyplň kód/URL Alfréda.', true); }
-    if(!/^\d{4}$/.test(door)){ return status('Vyplň 4místný kód dveří.', true); }
+    if(!/^\d{4}$/.test(door)){ return status('Vyplň 4-místný kód dveří.', true); }
     if(!apt){ return status('Vyplň číslo apartmánu.', true); }
 
-    // ➊ ZAJIŠTĚNÍ KONCOVÉHO LOMÍTKA, abychom se vyhnuli redirectu bez parametrů
-    let base = wpraw;
-    if (!base.endsWith('/')) base += '/';
+    // vždy koncové lomítko (bez redirectu, který by shodil query)
+    let base = wpraw.endsWith('/') ? wpraw : (wpraw + '/');
 
-    // ➋ Parametry necháme URLSearchParams, ať je korektně zakóduje (už nic ručně neenkóduj)
     const params = new URLSearchParams();
-    params.set('alf', alfRaw);   // může být kód i celá URL
+    params.set('alf', alfRaw);     // může být kód i celá URL
     params.set('door', door);
     params.set('apt', apt);
     if (st === 'done')   params.set('done', '1');
     if (st === 'unpaid') params.set('unpaid', '1');
 
-    const link = `${base}?${params.toString()}`;
+    const link = `${base}?${params.toString()}`.trim();
+
     $('out').textContent = link;
+    $('open').href = link;
 
     const enc = encodeURIComponent(link);
     $('wa').href  = `https://wa.me/?text=${enc}`;
@@ -130,56 +129,59 @@
 
     status('Odkaz připraven');
   }
-</script>
-
-  }
 
   function copyLink(){
-    const txt = $('out').textContent.trim();
+    const txt = ($('out').textContent || '').trim();
     if(!txt){ return status('Nejprve vytvoř odkaz.', true); }
-    navigator.clipboard?.writeText(txt).then(()=>status('Zkopírováno')).catch(()=>{
-      // fallback
-      const ta = document.createElement('textarea');
-      ta.value = txt; document.body.appendChild(ta);
-      ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-      status('Zkopírováno');
-    });
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(()=>status('Zkopírováno')).catch(()=>fallbackCopy(txt));
+    } else {
+      fallbackCopy(txt);
+    }
+  }
+  function fallbackCopy(txt){
+    const ta = document.createElement('textarea');
+    ta.value = txt; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    status('Zkopírováno');
   }
 
   function status(msg, err){
     $('status').textContent = msg;
     $('status').style.color = err ? '#b91c1c' : '#6b7280';
-    setTimeout(()=>{$('status').textContent='';}, 1800);
+    clearTimeout(status._t); status._t = setTimeout(()=>{$('status').textContent='';}, 2000);
   }
 
-  // === Defaults (localStorage) ===
   function saveDefaults(){
-    const obj = { wpurl: $('wpurl').value.trim() };
+    const obj = { wpurl: ($('wpurl').value || '').trim() };
     localStorage.setItem('hs.gen.defaults', JSON.stringify(obj));
     status('Uloženo');
   }
   function loadDefaults(){
     try{
       const s = localStorage.getItem('hs.gen.defaults');
-      if(!s) return;
+      if(!s) return status('Nic k načtení');
       const d = JSON.parse(s);
       if(d.wpurl) $('wpurl').value = d.wpurl;
-    }catch(e){}
-    status('Načteno');
+      status('Načteno');
+    }catch(e){ status('Nelze načíst', true); }
   }
   function clearAll(){
-    ['alf','door','apt','out'].forEach(id=>{ $(id).value ? $(id).value='' : ($(id).textContent=''); });
+    ['alf','door','apt'].forEach(id=>{$(id).value='';});
+    $('out').textContent='';
     status('Vymazáno');
   }
 
-  // Předvyplň WP URL při prvním otevření
+  // předvyplň WP URL při prvním otevření
   (function init(){
-    const stored = localStorage.getItem('hs.gen.defaults');
-    if(stored){
-      try{ const d=JSON.parse(stored); if(d.wpurl) $('wpurl').value=d.wpurl; }catch(e){}
-    }else{
-      $('wpurl').value = 'https://www.hillside18.cz/checkin';
-    }
+    try{
+      const s = localStorage.getItem('hs.gen.defaults');
+      if(s){
+        const d = JSON.parse(s);
+        if(d.wpurl) {$('wpurl').value = d.wpurl; return;}
+      }
+    }catch(e){}
+    $('wpurl').value = 'https://www.hillside18.cz/cs/check-in/';
   })();
 </script>
 </body>
