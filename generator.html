@@ -95,43 +95,43 @@
     $('door').value = String(Math.floor(1000 + Math.random()*9000));
   }
 
+ <script>
   function build(){
-    const wp = ($('wpurl').value || '').trim();
+    const wpraw = ($('wpurl').value || '').trim();
     const alfRaw = ($('alf').value || '').trim();
     const door = ($('door').value || '').trim();
     const apt = ($('apt').value || '').trim();
     const st = radio('st');
 
-    if(!wp){ return status('Vyplň URL WordPress stránky.', true); }
+    if(!wpraw){ return status('Vyplň URL WordPress stránky.', true); }
     if(!alfRaw){ return status('Vyplň kód/URL Alfréda.', true); }
-    if(!door || !/^\d{4}$/.test(door)){ return status('Vyplň 4místný kód dveří.', true); }
+    if(!/^\d{4}$/.test(door)){ return status('Vyplň 4místný kód dveří.', true); }
     if(!apt){ return status('Vyplň číslo apartmánu.', true); }
 
-    // Parametr alf: buď ponecháme celou URL, nebo kód
-    let alfParam = alfRaw;
-    if(!/^https?:\/\//i.test(alfRaw)){
-      alfParam = encodeURIComponent(alfRaw);
-    }else{
-      alfParam = encodeURIComponent(alfRaw);
-    }
+    // ➊ ZAJIŠTĚNÍ KONCOVÉHO LOMÍTKA, abychom se vyhnuli redirectu bez parametrů
+    let base = wpraw;
+    if (!base.endsWith('/')) base += '/';
 
+    // ➋ Parametry necháme URLSearchParams, ať je korektně zakóduje (už nic ručně neenkóduj)
     const params = new URLSearchParams();
-    params.set('alf', decodeURIComponent(alfParam)); // URLSearchParams sám escapuje
+    params.set('alf', alfRaw);   // může být kód i celá URL
     params.set('door', door);
     params.set('apt', apt);
-    if(st === 'done') params.set('done','1');
-    if(st === 'unpaid') params.set('unpaid','1');
+    if (st === 'done')   params.set('done', '1');
+    if (st === 'unpaid') params.set('unpaid', '1');
 
-    const link = wp.replace(/\/+$/,'') + '?' + params.toString();
+    const link = `${base}?${params.toString()}`;
     $('out').textContent = link;
 
-    // rychlé kanály
     const enc = encodeURIComponent(link);
     $('wa').href  = `https://wa.me/?text=${enc}`;
     $('sms').href = `sms:?&body=${enc}`;
     $('mail').href= `mailto:?subject=${encodeURIComponent('Hillside18 – informace k příjezdu')}&body=${enc}`;
 
     status('Odkaz připraven');
+  }
+</script>
+
   }
 
   function copyLink(){
