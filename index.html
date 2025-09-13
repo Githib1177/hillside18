@@ -492,4 +492,25 @@ if(acMsg){
   }catch(e){ try{console.warn('init skipped', e);}catch(_){ } }
 })();
 </script>
+<script>
+(function(){
+  var el = document.getElementById('btn-call-recepce');
+  if(!el) return;
+  var href = el.getAttribute('href')||'';
+  if(!/^tel:/i.test(href)) return;
+
+  function dial(){ window.location.href = href; }
+
+  // Zachytíme události dřív než ostatní skripty a nedovolíme jim je zrušit
+  ['touchend','click'].forEach(function(evt){
+    el.addEventListener(evt, function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      dial();
+    }, true); // capture = true
+  });
+})();
+</script>
+
 <!-- ===== /HILLSIDE 18 – CHECK-IN INFO (clean) ===== -->
