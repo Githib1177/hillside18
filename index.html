@@ -428,6 +428,14 @@ if(acMsg){
         if(ps3[0]) ps3[0].innerHTML=T.access_p1_html;
         if(ps3[1]) ps3[1].innerHTML=T.access_p2_html;
         var doorLbl=document.querySelector('#door-wrap div[style*="font-size"]'); if(doorLbl) doorLbl.textContent=T.door_label;
+        // Door-missing hint (pokud existuje)
+        var dc   = document.getElementById('door-code');
+        var hint = document.getElementById('door-msg');
+        if (dc && hint) {
+        var kind = dc.getAttribute('data-missing'); // 'payment' | 'checkin'
+        hint.textContent = (kind === 'payment') ? T.missingPayment : T.missingCheckin;
+      }
+
       }
 
       // 4) Heating & lights
