@@ -3,35 +3,49 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-api-key');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     return res.status(200).end();
   }
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
 
   try {
     const { to, text } = req.body || {};
-    if (!Array.isArray(to) || !to.length || !text) {
+    if (!Array.isArray(to) || to.length === 0 || !text) {
       return res.status(400).json({ error: 'Missing "to" or "text"' });
     }
 
-    const SMS_UPSTREAM_URL = process.env.SMS_UPSTREAM_URL; // stejný endpoint jako u Link Builderu
+    // mapa na SMS podle dokumentace
+    const login = process.env.SMS_LOGIN;       // váš login
+    const password = process.env.SMS_PASSWORD; // heslo
+    const baseUrl = 'https://api.smsbrana.cz/smsconnect/http.php';
 
-    const headers = { 'Content-Type': 'application/json' };
-    if (process.env.SMS_AUTH_BEARER) headers['Authorization'] = `Bearer ${process.env.SMS_AUTH_BEARER}`;
-    if (process.env.SMS_API_KEY)     headers['x-api-key']     = process.env.SMS_API_KEY;
+    const results = [];
 
-    const r = await fetch(SMS_UPSTREAM_URL, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ to, text: String(text).slice(0, 1000) })
-    });
+    for (const recipient of to) {
+      // normalizuj číslo, zjisti, jestli je mezinárodní + začíná +, nebo přidej +420 pokud není
 
-    const raw = await r.text();
-    let data; try { data = JSON.parse(raw); } catch { data = { raw }; }
+      const resp = await fetch(
+        `${baseUrl}?login=${encodeURIComponent(login)}&password=${encodeURIComponent(password)}&action=send_sms&number=${encodeURIComponent(recipient)}&message=${encodeURIComponent(text)}`,
+        {
+          method: 'GET'  // nebo POST, pokud chcete
+        }
+      );
+      const body = await resp.text();
+      results.push({
+        to: recipient,
+        status: resp.ok,
+        response: body
+      });
+    }
 
-    if (!r.ok) return res.status(r.status).json({ error: 'Upstream error', data });
-    return res.status(200).json({ ok: true, data });
-  } catch (e) {
+    // vrátíme souhrn
+    return res.status(200).json({ ok: true, results });
+
+  } catch (err) {
+    console.error('send-sms error:', err);
     return res.status(500).json({ error: 'Server error' });
   }
 }
