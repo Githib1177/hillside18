@@ -14,15 +14,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing "to" or "text"' });
     }
 
-    // stejný upstream jako má Link Builder:
-    const SMS_UPSTREAM_URL = process.env.SMS_UPSTREAM_URL;
+    const SMS_UPSTREAM_URL = process.env.SMS_UPSTREAM_URL; // stejný endpoint jako u Link Builderu
 
-    const headers = { 'Content-Type':'application/json' };
+    const headers = { 'Content-Type': 'application/json' };
     if (process.env.SMS_AUTH_BEARER) headers['Authorization'] = `Bearer ${process.env.SMS_AUTH_BEARER}`;
     if (process.env.SMS_API_KEY)     headers['x-api-key']     = process.env.SMS_API_KEY;
 
     const r = await fetch(SMS_UPSTREAM_URL, {
-      method:'POST',
+      method: 'POST',
       headers,
       body: JSON.stringify({ to, text: String(text).slice(0, 1000) })
     });
@@ -31,7 +30,7 @@ export default async function handler(req, res) {
     let data; try { data = JSON.parse(raw); } catch { data = { raw }; }
 
     if (!r.ok) return res.status(r.status).json({ error: 'Upstream error', data });
-    return res.status(200).json({ ok:true, data });
+    return res.status(200).json({ ok: true, data });
   } catch (e) {
     return res.status(500).json({ error: 'Server error' });
   }
