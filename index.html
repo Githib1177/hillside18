@@ -193,7 +193,7 @@
     return out;
   }
 
-  /* ---------- NOVÉ: bezpečné sloučení parametrů i v iframu ---------- */
+  /* ---------- Bezpečné sloučení parametrů i v iframu ---------- */
   function paramsFrom(str){
     var q = (str||'').trim();
     if(!q) return new URLSearchParams();
@@ -205,26 +205,22 @@
     }catch(e){ return new URLSearchParams(); }
   }
   function mergedParams(){
-    // 1) query z aktuální stránky (uvnitř iframe)
-    var out = new URLSearchParams(window.location.search);
-    // 2) doplníme hash (např. #apt=4)
-    var hp = paramsFrom(window.location.hash);
+    var out = new URLSearchParams(window.location.search);      // iframe query
+    var hp  = paramsFrom(window.location.hash);                 // hash (#apt=…)
     hp.forEach(function(v,k){ if(!out.has(k)) out.set(k,v); });
-    // 3) doplníme query z rodiče (přes referrer), pokud chybí
-    var rp = paramsFrom(document.referrer);
+    var rp  = paramsFrom(document.referrer);                    // parent query
     rp.forEach(function(v,k){ if(!out.has(k)) out.set(k,v); });
     return out;
   }
 
   try{
     /* ---------- 1) Parametry ---------- */
-    var p = mergedParams();
-
-    var alf    = p.get('alf');  // kód nebo plná URL Alfréda
-    var door   = p.get('door'); // 4 čísla
-    var done   = p.get('done'); // "1" => check-in hotový
-    var unpaid = p.get('unpaid'); // "1" => hotový, zbývá zaplatit
-    var nav    = p.get('nav');  // volitelný odkaz na mapy
+    var p      = mergedParams();
+    var alf    = p.get('alf');
+    var door   = p.get('door');
+    var done   = p.get('done');
+    var unpaid = p.get('unpaid');
+    var nav    = p.get('nav');
     var apt    = p.get('apt') || p.get('apartment') || p.get('apartment_no') || p.get('APT') || p.get('APARTMENT');
 
     // pásky done/unpaid + přepnutí bloků
@@ -255,12 +251,6 @@
       if(btnD) btnD.href=full;
       var wrap=$('#alf-wrap'), box=$('#alf-code');
       if(wrap&&box){ box.textContent=code||full; wrap.style.display='block'; }
-    }
-
-    // Apartmán
-    if(apt){
-      var a=document.getElementById('apt-code');
-      if(a){ a.textContent='Apartmán č. '+apt; a.style.display='block'; }
     }
 
     // Dveře (vždy zobrazujeme box; pokud není door, dáme XXXX + hint)
@@ -305,7 +295,6 @@
     setTimeout(forceStyles,400); setTimeout(forceStyles,1200);
 
     /* ---------- 2) i18n ---------- */
-    // jazyk vybereme z posbíraných paramů (mergedParams už slučuje i parent)
     var langs = p.getAll('lang').map(function(s){ return (s||'').toLowerCase(); });
     var lang = (function(){
       if(langs.length){
@@ -445,12 +434,6 @@
         if(ps3[0]) ps3[0].innerHTML=T.access_p1_html;
         if(ps3[1]) ps3[1].innerHTML=T.access_p2_html;
         var doorLbl=document.querySelector('#door-wrap div[style*="font-size"]'); if(doorLbl) doorLbl.textContent=T.door_label;
-        var dc   = document.getElementById('door-code');
-        var hint = document.getElementById('door-msg');
-        if (dc && hint) {
-          var kind = dc.getAttribute('data-missing'); // 'payment' | 'checkin'
-          hint.textContent = (kind === 'payment') ? T.missingPayment : T.missingCheckin;
-        }
       }
 
       // 4) Heating & lights
@@ -497,11 +480,17 @@
         var warn2=cards[7].querySelector('p[style*="color:#7a7a79"]'); if(warn2) warn2.textContent=T.warn_share;
       }
 
-      // prefix apartmánu (pokud je vidět)
+      /* *** JEDINÁ ZMĚNA: nastav APT v EN/DE přímo z parametru, bez regexu *** */
       var aptEl=document.getElementById('apt-code');
-      if(aptEl && aptEl.textContent){
-        var n=(aptEl.textContent.match(/\d+/)||[''])[0];
-        aptEl.textContent = (T.apt_prefix||'Apartmán č. ')+n;
+      if(aptEl && apt){
+        aptEl.textContent = (T.apt_prefix || 'Apartmán č. ') + apt;
+        aptEl.style.display = 'block';
+      }
+    }else{
+      // CS: zobraz APT, pokud je
+      if(apt){
+        var a=document.getElementById('apt-code');
+        if(a){ a.textContent='Apartmán č. '+apt; a.style.display='block'; }
       }
     }
   }catch(e){ try{console.warn('init skipped', e);}catch(_){ } }
