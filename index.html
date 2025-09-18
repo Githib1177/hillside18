@@ -193,47 +193,26 @@
     return out;
   }
 
-<script>
-(function(){
-  /* ---------- Pomocné ---------- */
-  function $(sel){ return document.querySelector(sel); }
-  function setH2(card, txt){
-    if(!card) return;
-    var h2 = card.querySelector('.hs-h2'); if(!h2) return;
-    var span = h2.querySelector('.hs-num');
-    var prefix = span ? span.outerHTML : '';
-    h2.innerHTML = prefix + ' ' + txt;
-  }
-  function directPs(card){
-    var out=[], kids=card ? card.children : [];
-    for(var i=0;i<kids.length;i++) if(kids[i].tagName==='P') out.push(kids[i]);
-    return out;
-  }
-
-  // NOVÉ: sloučíme paramy z location.search + location.hash + document.referrer
+  /* ---------- NOVÉ: bezpečné sloučení parametrů i v iframu ---------- */
   function paramsFrom(str){
     var q = (str||'').trim();
     if(!q) return new URLSearchParams();
-    // q může být celá URL, jen hash, nebo jen ?query
     try{
-      if(q.startsWith('http')){ var u=new URL(q); return u.searchParams; }
-      if(q.startsWith('#'))   { return new URLSearchParams(q.slice(1)); }
-      if(q.startsWith('?'))   { return new URLSearchParams(q.slice(1)); }
+      if(q.indexOf('http')===0){ var u=new URL(q); return u.searchParams; }
+      if(q.indexOf('#')===0)   { return new URLSearchParams(q.slice(1)); }
+      if(q.indexOf('?')===0)   { return new URLSearchParams(q.slice(1)); }
       return new URLSearchParams(q);
-    }catch(_){ return new URLSearchParams(); }
+    }catch(e){ return new URLSearchParams(); }
   }
   function mergedParams(){
-    // 1) query z iframu
-    var P = new URLSearchParams(window.location.search);
-    // 2) hash z iframu (např. #apt=4)
-    var H = paramsFrom(window.location.hash);
-    // 3) query z rodiče (iframe parent) přes referrer
-    var R = paramsFrom(document.referrer);
-
-    // sloučení: nejdřív P, pak H, pak R (co přijde později, to může doplnit chybějící)
-    var out = new URLSearchParams(P.toString());
-    H.forEach((v,k)=>{ if(!out.has(k)) out.set(k,v); });
-    R.forEach((v,k)=>{ if(!out.has(k)) out.set(k,v); });
+    // 1) query z aktuální stránky (uvnitř iframe)
+    var out = new URLSearchParams(window.location.search);
+    // 2) doplníme hash (např. #apt=4)
+    var hp = paramsFrom(window.location.hash);
+    hp.forEach(function(v,k){ if(!out.has(k)) out.set(k,v); });
+    // 3) doplníme query z rodiče (přes referrer), pokud chybí
+    var rp = paramsFrom(document.referrer);
+    rp.forEach(function(v,k){ if(!out.has(k)) out.set(k,v); });
     return out;
   }
 
@@ -241,13 +220,12 @@
     /* ---------- 1) Parametry ---------- */
     var p = mergedParams();
 
-    // aliasy pro APT (kdyby někdo poslal jiný název)
-    var apt   = p.get('apt') || p.get('apartment') || p.get('apartment_no') || p.get('APT') || p.get('APARTMENT');
-    var alf   = p.get('alf');         // kód nebo plná URL Alfréda
-    var door  = p.get('door');        // 4 čísla
-    var done  = p.get('done');        // "1" => check-in hotový
-    var unpaid= p.get('unpaid');      // "1" => hotový, zbývá zaplatit
-    var nav   = p.get('nav');         // volitelný odkaz na mapy
+    var alf    = p.get('alf');  // kód nebo plná URL Alfréda
+    var door   = p.get('door'); // 4 čísla
+    var done   = p.get('done'); // "1" => check-in hotový
+    var unpaid = p.get('unpaid'); // "1" => hotový, zbývá zaplatit
+    var nav    = p.get('nav');  // volitelný odkaz na mapy
+    var apt    = p.get('apt') || p.get('apartment') || p.get('apartment_no') || p.get('APT') || p.get('APARTMENT');
 
     // pásky done/unpaid + přepnutí bloků
     if(done === '1' || unpaid === '1'){
@@ -280,44 +258,34 @@
     }
 
     // Apartmán
-    if(apt){ var a=$('#apt-code'); if(a){ a.textContent='Apartmán č. '+apt; a.style.display='block'; } }
-
-    // Dveře
-    var d=document.getElementById('door-code');
-    if(door && d){
-      d.textContent=door; d.style.display='block';
-    }else if(d){
-      d.textContent='XXXX'; d.style.display='block';
-      d.setAttribute('data-missing', (unpaid==='1' ? 'payment' : 'checkin'));
-
-      var hint=document.getElementById('door-msg');
-      if(!hint){
-        hint=document.createElement('div');
-        hint.id='door-msg';
-        hint.style.cssText='margin-top:6px;color:#7a7a79;font-size:.95rem;text-align:center;';
-        d.parentNode.appendChild(hint);
-      }
-      hint.textContent = (unpaid==='1')
-        ? 'Dokončete prosím platbu. Kód dveří se zde zobrazí po připsání platby.'
-        : 'Dokončete prosím on-line check-in v aplikaci Alfréd. Kód dveří se zde zobrazí po dokončení.';
+    if(apt){
+      var a=document.getElementById('apt-code');
+      if(a){ a.textContent='Apartmán č. '+apt; a.style.display='block'; }
     }
 
-    /* ---------- 2) i18n ---------- */
-    // jazyk: spojíme všechny lang z query (vč. parentu) a vezmeme poslední nenulový, jiný než cs
-    var langs = p.getAll('lang').map(function(s){ return (s||'').toLowerCase(); });
-    var lang = (function(){
-      if(langs.length){
-        for(var i=langs.length-1;i>=0;i--) if(langs[i] && langs[i] !== 'cs') return langs[i];
-        return langs[langs.length-1];
+    // Dveře (vždy zobrazujeme box; pokud není door, dáme XXXX + hint)
+    var d=document.getElementById('door-code');
+    if(d){
+      if(door){
+        d.textContent=door;
+      }else{
+        d.textContent='XXXX';
+        d.setAttribute('data-missing', (unpaid==='1' ? 'payment' : 'checkin'));
+        var hint=document.getElementById('door-msg');
+        if(!hint){
+          hint=document.createElement('div');
+          hint.id='door-msg';
+          hint.style.cssText='margin-top:6px;color:#7a7a79;font-size:.95rem;text-align:center;';
+          d.parentNode.appendChild(hint);
+        }
+        hint.textContent = (unpaid==='1')
+          ? 'Dokončete prosím platbu. Kód dveří se zde zobrazí po připsání platby.'
+          : 'Dokončete prosím on-line check-in v aplikaci Alfréd. Kód dveří se zde zobrazí po dokončení.';
       }
-      return 'cs';
-    })();
-    if(!/^(cs|en|de)$/.test(lang)) lang='cs';
-
-
+    }
 
     // Navigace
-    var bn=$('#btn-nav'); if(nav && bn){ bn.href=nav; }
+    var bn=document.getElementById('btn-nav'); if(nav && bn){ bn.href=nav; }
 
     // Pojistka stylů pro kódy
     function forceStyles(){
@@ -337,7 +305,7 @@
     setTimeout(forceStyles,400); setTimeout(forceStyles,1200);
 
     /* ---------- 2) i18n ---------- */
-    // vyber poslední/nejpozdejší lang z query (řeší WP: ?lang=cs v iframu + &lang=de v odkazu)
+    // jazyk vybereme z posbíraných paramů (mergedParams už slučuje i parent)
     var langs = p.getAll('lang').map(function(s){ return (s||'').toLowerCase(); });
     var lang = (function(){
       if(langs.length){
@@ -371,7 +339,6 @@
           door_label:'Main entrance code:',
           missingCheckin:'Please complete the online check-in in the Alfréd app. The door code will appear here once completed.',
           missingPayment:'Please complete the payment. The door code will appear here once the payment is received.',
-
           heat_h:'Heating & lights',
           heat_p1_html:'A wall-mounted tablet in the main room controls heating and lights. To wake it up, <b>double-tap</b> the screen.',
           heat_p2_html:'<b>Ventilate briefly and intensively.</b> With open windows the system does not heat.',
@@ -411,10 +378,8 @@
           access_p1_html:'Der Zugang ist <b>schlüssellos</b>. Die Eingangstür hat eine Tastatur und ein Selbstverriegelungsschloss.',
           access_p2_html:'Nach Eingabe des vierstelligen Codes leuchtet Grün und die Tür entriegelt für einige Sekunden. Falschen Code mit <b>*</b> löschen und nach 5&nbsp;s erneut eingeben. Nach dem Schließen verriegelt das Schloss automatisch.',
           door_label:'Code für den Haupteingang:',
-          door_label: 'Code für den Haupteingang:',
-          missingCheckin: 'Bitte schließen Sie das Online-Check-in in der Alfréd-App ab. Der Türcode erscheint hier nach Abschluss.',
-          missingPayment: 'Bitte schließen Sie die Zahlung ab. Der Türcode erscheint hier nach Zahlungseingang.',
-
+          missingCheckin:'Bitte schließen Sie das Online-Check-in in der Alfréd-App ab. Der Türcode erscheint hier nach Abschluss.',
+          missingPayment:'Bitte schließen Sie die Zahlung ab. Der Türcode erscheint hier nach Zahlungseingang.',
           heat_h:'Heizung & Licht',
           heat_p1_html:'An der Wand im Wohnraum befindet sich ein Tablet zur Steuerung von Heizung und Licht. Aufwecken: <b>Doppeltippen</b> auf den Bildschirm.',
           heat_p2_html:'<b>Bitte kurz und intensiv lüften.</b> Bei geöffneten Fenstern heizt das System nicht.',
@@ -437,13 +402,11 @@
         }
       }[lang];
 
-      // HLAVIČKA (robustně – bez ohledu na vložený proužek)
-var h1 = document.querySelector('.hs-wrap h1');
-if (h1) h1.textContent = T.welcome;
-
-var sub = document.querySelector('.hs-wrap h1 + p');
-if (sub) sub.textContent = T.sub;
-
+      // HLAVIČKA
+      var h1 = document.querySelector('.hs-wrap h1');
+      if (h1) h1.textContent = T.welcome;
+      var sub = document.querySelector('.hs-wrap h1 + p');
+      if (sub) sub.textContent = T.sub;
 
       var cards=document.querySelectorAll('.hs-card');
 
@@ -455,19 +418,15 @@ if (sub) sub.textContent = T.sub;
         var b2=document.getElementById('btn-alf-done'); if(b2) b2.textContent=T.after_btn;
         var lbl=document.querySelector('#alf-wrap p b'); if(lbl) lbl.textContent=T.alf_code_label;
       }
-    // přepiš informační proužky JISTĚ podle parametru
-var bars=document.querySelectorAll('.hs-wrap > div[style*="font-weight:700"]');
-for(var i=0;i<bars.length;i++){
-  bars[i].innerHTML = (unpaid === '1') ? T.unpaid_bar : T.done_bar;
-}
-
-// přelož i zprávu uvnitř bloku #after-checkin (karta 1)
-var acMsg = document.querySelector('#after-checkin p');
-if(acMsg){
-  acMsg.innerHTML = (unpaid === '1') ? T.unpaid_bar : T.done_bar;
-}
-
-
+      // přepiš informační proužky jistě podle parametru
+      var bars=document.querySelectorAll('.hs-wrap > div[style*="font-weight:700"]');
+      for(var i=0;i<bars.length;i++){
+        bars[i].innerHTML = (unpaid === '1') ? T.unpaid_bar : T.done_bar;
+      }
+      var acMsg = document.querySelector('#after-checkin p');
+      if(acMsg){
+        acMsg.innerHTML = (unpaid === '1') ? T.unpaid_bar : T.done_bar;
+      }
 
       // 2) Arrival & parking
       if(cards[1]){
@@ -486,14 +445,12 @@ if(acMsg){
         if(ps3[0]) ps3[0].innerHTML=T.access_p1_html;
         if(ps3[1]) ps3[1].innerHTML=T.access_p2_html;
         var doorLbl=document.querySelector('#door-wrap div[style*="font-size"]'); if(doorLbl) doorLbl.textContent=T.door_label;
-        // Door-missing hint (pokud existuje)
         var dc   = document.getElementById('door-code');
         var hint = document.getElementById('door-msg');
         if (dc && hint) {
-        var kind = dc.getAttribute('data-missing'); // 'payment' | 'checkin'
-        hint.textContent = (kind === 'payment') ? T.missingPayment : T.missingCheckin;
-      }
-
+          var kind = dc.getAttribute('data-missing'); // 'payment' | 'checkin'
+          hint.textContent = (kind === 'payment') ? T.missingPayment : T.missingCheckin;
+        }
       }
 
       // 4) Heating & lights
@@ -550,7 +507,4 @@ if(acMsg){
   }catch(e){ try{console.warn('init skipped', e);}catch(_){ } }
 })();
 </script>
-
-
-
 <!-- ===== /HILLSIDE 18 – CHECK-IN INFO (clean) ===== -->
