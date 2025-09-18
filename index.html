@@ -193,15 +193,61 @@
     return out;
   }
 
+<script>
+(function(){
+  /* ---------- Pomocné ---------- */
+  function $(sel){ return document.querySelector(sel); }
+  function setH2(card, txt){
+    if(!card) return;
+    var h2 = card.querySelector('.hs-h2'); if(!h2) return;
+    var span = h2.querySelector('.hs-num');
+    var prefix = span ? span.outerHTML : '';
+    h2.innerHTML = prefix + ' ' + txt;
+  }
+  function directPs(card){
+    var out=[], kids=card ? card.children : [];
+    for(var i=0;i<kids.length;i++) if(kids[i].tagName==='P') out.push(kids[i]);
+    return out;
+  }
+
+  // NOVÉ: sloučíme paramy z location.search + location.hash + document.referrer
+  function paramsFrom(str){
+    var q = (str||'').trim();
+    if(!q) return new URLSearchParams();
+    // q může být celá URL, jen hash, nebo jen ?query
+    try{
+      if(q.startsWith('http')){ var u=new URL(q); return u.searchParams; }
+      if(q.startsWith('#'))   { return new URLSearchParams(q.slice(1)); }
+      if(q.startsWith('?'))   { return new URLSearchParams(q.slice(1)); }
+      return new URLSearchParams(q);
+    }catch(_){ return new URLSearchParams(); }
+  }
+  function mergedParams(){
+    // 1) query z iframu
+    var P = new URLSearchParams(window.location.search);
+    // 2) hash z iframu (např. #apt=4)
+    var H = paramsFrom(window.location.hash);
+    // 3) query z rodiče (iframe parent) přes referrer
+    var R = paramsFrom(document.referrer);
+
+    // sloučení: nejdřív P, pak H, pak R (co přijde později, to může doplnit chybějící)
+    var out = new URLSearchParams(P.toString());
+    H.forEach((v,k)=>{ if(!out.has(k)) out.set(k,v); });
+    R.forEach((v,k)=>{ if(!out.has(k)) out.set(k,v); });
+    return out;
+  }
+
   try{
     /* ---------- 1) Parametry ---------- */
-    var p = new URLSearchParams(location.search);
+    var p = mergedParams();
+
+    // aliasy pro APT (kdyby někdo poslal jiný název)
+    var apt   = p.get('apt') || p.get('apartment') || p.get('apartment_no') || p.get('APT') || p.get('APARTMENT');
     var alf   = p.get('alf');         // kód nebo plná URL Alfréda
     var door  = p.get('door');        // 4 čísla
     var done  = p.get('done');        // "1" => check-in hotový
     var unpaid= p.get('unpaid');      // "1" => hotový, zbývá zaplatit
     var nav   = p.get('nav');         // volitelný odkaz na mapy
-    var apt   = p.get('apt');         // číslo apartmánu
 
     // pásky done/unpaid + přepnutí bloků
     if(done === '1' || unpaid === '1'){
@@ -237,25 +283,37 @@
     if(apt){ var a=$('#apt-code'); if(a){ a.textContent='Apartmán č. '+apt; a.style.display='block'; } }
 
     // Dveře
-    // Door code (+ fallback na XXXX + zpráva)
-var d=document.getElementById('door-code');
-if(door && d){
-  d.textContent=door; d.style.display='block';
-}else if(d){
-  d.textContent='XXXX'; d.style.display='block';
-  d.setAttribute('data-missing', (unpaid==='1' ? 'payment' : 'checkin'));
+    var d=document.getElementById('door-code');
+    if(door && d){
+      d.textContent=door; d.style.display='block';
+    }else if(d){
+      d.textContent='XXXX'; d.style.display='block';
+      d.setAttribute('data-missing', (unpaid==='1' ? 'payment' : 'checkin'));
 
-  var hint=document.getElementById('door-msg');
-  if(!hint){
-    hint=document.createElement('div');
-    hint.id='door-msg';
-    hint.style.cssText='margin-top:6px;color:#7a7a79;font-size:.95rem;text-align:center;';
-    d.parentNode.appendChild(hint);
-  }
-  hint.textContent = (unpaid==='1')
-    ? 'Dokončete prosím platbu. Kód dveří se zde zobrazí po připsání platby.'
-    : 'Dokončete prosím on-line check-in v aplikaci Alfréd. Kód dveří se zde zobrazí po dokončení.';
-}
+      var hint=document.getElementById('door-msg');
+      if(!hint){
+        hint=document.createElement('div');
+        hint.id='door-msg';
+        hint.style.cssText='margin-top:6px;color:#7a7a79;font-size:.95rem;text-align:center;';
+        d.parentNode.appendChild(hint);
+      }
+      hint.textContent = (unpaid==='1')
+        ? 'Dokončete prosím platbu. Kód dveří se zde zobrazí po připsání platby.'
+        : 'Dokončete prosím on-line check-in v aplikaci Alfréd. Kód dveří se zde zobrazí po dokončení.';
+    }
+
+    /* ---------- 2) i18n ---------- */
+    // jazyk: spojíme všechny lang z query (vč. parentu) a vezmeme poslední nenulový, jiný než cs
+    var langs = p.getAll('lang').map(function(s){ return (s||'').toLowerCase(); });
+    var lang = (function(){
+      if(langs.length){
+        for(var i=langs.length-1;i>=0;i--) if(langs[i] && langs[i] !== 'cs') return langs[i];
+        return langs[langs.length-1];
+      }
+      return 'cs';
+    })();
+    if(!/^(cs|en|de)$/.test(lang)) lang='cs';
+
 
 
     // Navigace
