@@ -418,14 +418,22 @@
       }
 
       // 2) Arrival & parking
-      if(cards[1]){
-        setH2(cards[1], T.arr_h);
-        var ps=directPs(cards[1]);
-        if(ps[0]) ps[0].innerHTML=T.arr_p1_html;
-        if(ps[1]) ps[1].innerHTML=T.arr_p2_html;
-        if(ps[2]) ps[2].innerHTML=T.arr_p3_html;
-        var navBtn=document.getElementById('btn-nav'); if(navBtn) navBtn.textContent=T.nav_btn;
-      }
+     if(cards[2]){
+  setH2(cards[2], T.access_h);
+  var ps3=directPs(cards[2]);
+  if(ps3[0]) ps3[0].innerHTML=T.access_p1_html;
+  if(ps3[1]) ps3[1].innerHTML=T.access_p2_html;
+  var doorLbl=document.querySelector('#door-wrap div[style*="font-size"]'); 
+  if(doorLbl) doorLbl.textContent=T.door_label;
+
+  // přelož i hint pod kódem dveří (pokud existuje)
+  var hintEl = document.getElementById('door-msg');
+  if (hintEl) {
+    var kind = (document.getElementById('door-code') || {}).getAttribute('data-missing');
+    hintEl.textContent = (kind === 'payment') ? T.missingPayment : T.missingCheckin;
+  }
+}
+
 
       // 3) Access
       if(cards[2]){
