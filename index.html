@@ -434,12 +434,12 @@ if(cards[2]){
   if(ps3[0]) ps3[0].innerHTML=T.access_p1_html;
   if(ps3[1]) ps3[1].innerHTML=T.access_p2_html;
 
-  // --- door label: element těsně před #door-code ---
-  var doorLbl = (function(){
-    var dc = document.getElementById('door-code');
-    return dc ? dc.previousElementSibling : null;
-  })();
-  if (doorLbl) doorLbl.textContent = T.door_label;
+  // --- door label: najdi element přímo před #door-code ---
+  var dc = document.getElementById('door-code');
+  var doorLbl = (dc && dc.previousElementSibling) ? dc.previousElementSibling : null;
+  if (doorLbl) {
+    doorLbl.textContent = T.door_label;
+  }
 
   // --- door hint přeložit podle stavu (payment/checkin) ---
   var hintEl = document.getElementById('door-msg');
@@ -448,6 +448,7 @@ if(cards[2]){
     hintEl.textContent = (kind === 'payment') ? T.missingPayment : T.missingCheckin;
   }
 }
+
 
 
 
