@@ -428,21 +428,34 @@
       }
 
       // 3) Access
-     if(cards[2]){
+if(cards[2]){
   setH2(cards[2], T.access_h);
   var ps3=directPs(cards[2]);
   if(ps3[0]) ps3[0].innerHTML=T.access_p1_html;
   if(ps3[1]) ps3[1].innerHTML=T.access_p2_html;
-  var doorLbl=document.querySelector('#door-wrap div[style*="font-size"]'); 
-  if(doorLbl) doorLbl.textContent=T.door_label;
 
-  // přelož i hint pod kódem dveří (pokud existuje)
+  // --- door label (robustně) ---
+  var doorLbl = document.querySelector('#door-wrap div[style*="font-size"]');
+  if (!doorLbl) {
+    // fallback: najdi div v #door-wrap, který začíná českým textem
+    var cands = document.querySelectorAll('#door-wrap div');
+    for (var i = 0; i < cands.length; i++) {
+      if (cands[i].textContent.trim().indexOf('Kód pro hlavní vstup') === 0) {
+        doorLbl = cands[i];
+        break;
+      }
+    }
+  }
+  if (doorLbl) doorLbl.textContent = T.door_label;
+
+  // --- door hint přeložit podle stavu (payment/checkin) ---
   var hintEl = document.getElementById('door-msg');
   if (hintEl) {
     var kind = (document.getElementById('door-code') || {}).getAttribute('data-missing');
     hintEl.textContent = (kind === 'payment') ? T.missingPayment : T.missingCheckin;
   }
 }
+
 
 
       // 4) Heating & lights
